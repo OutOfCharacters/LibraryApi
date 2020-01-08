@@ -1,7 +1,9 @@
 ﻿using LibraryApi.Domain;
 using LibraryApi.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LibraryApi.Controllers
 {
@@ -15,16 +17,21 @@ namespace LibraryApi.Controllers
         }
 
         [HttpGet("/books")]
-        public IActionResult GetAllBooks()
+        public async Task<IActionResult> GetAllBooks([FromQuery] string genre = "all")
         {
             var response = new GetBooksResponseCollection();
-            response.Books = Context.Books.Select(b => new BookSummaryItem
+            var allBooks = Context.Books.Select(b => new BookSummaryItem
             {
                 Id = b.Id,
                 Title = b.Title,
                 Author = b.Author,
                 Genre = b.Genre
-            }).ToList();
+            });
+            if (genre != "all")
+            {
+                allBooks = allBooks.Where(b => b.Genre == genre);
+            }
+            response.Books = await allBooks.ToListAsync();
 
             return Ok(response);
         }

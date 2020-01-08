@@ -5,6 +5,7 @@ namespace LibraryApi.Models
     public class GetBooksResponseCollection
     {
         public List<BookSummaryItem> Books { get; set; }
+        public string GenreFilter { get; set; }
     }
 
     public class BookSummaryItem
