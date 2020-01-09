@@ -13,6 +13,7 @@
       "commandName": "IISExpress",
       "launchUrl": "weatherforecast",
       "environmentVariables": {
+        "ConnectionStrings__db": "server=.\\sqlexpress;database=library;integrated security=true",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
@@ -20,6 +21,7 @@
       "commandName": "Project",
       "launchUrl": "weatherforecast",
       "environmentVariables": {
+        "ConnectionStrings__db": "server=.\\sqlexpress;database=library;integrated security=true",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:5000"

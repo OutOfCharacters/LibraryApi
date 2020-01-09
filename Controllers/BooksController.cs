@@ -1,5 +1,6 @@
 ﻿using LibraryApi.Domain;
 using LibraryApi.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace LibraryApi.Controllers
 {
+    [Produces("application/json")]
     public class BooksController : Controller
     {
         LibraryDataContext Context;
@@ -69,7 +71,13 @@ namespace LibraryApi.Controllers
         }
 
         //Delete almost never gets used, usually just enables/disables certain rows with property
+        /// <summary>
+        /// Removes a book from the inventory
+        /// </summary>
+        /// <param name="id">Id of the book you want to remove</param>
+        /// <returns></returns>
         [HttpDelete("/books/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> RemoveABook(int id)
         {
             var book = await Context.Books.Where(b => b.Id == id && b.InInventory).SingleOrDefaultAsync();
