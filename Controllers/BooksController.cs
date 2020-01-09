@@ -17,7 +17,7 @@ namespace LibraryApi.Controllers
         }
 
         //Get /books/{id}
-        [HttpGet("/books/{id:int}")]
+        [HttpGet("/books/{id:int}", Name = "books#getabook")]
         public async Task<IActionResult> GetABook(int id)
         {
             //Single or default returns either one value, or default(null) or throws an exception if multiple objects are to be returned 
@@ -41,19 +41,32 @@ namespace LibraryApi.Controllers
         }
 
         [HttpPost("/books")]
-        public async Task<IActionResult> AddABook()
+        public async Task<IActionResult> AddABook([FromBody] PostBookRequest bookToAdd)
         {
             // Validate the thingy
             // Not? -> Return a 400 status (Bad Request)
             // Is Valid?
             //  Add it to the database
+            var book = new Book
+            {
+                Title = bookToAdd.Title,
+                Author = bookToAdd.Author,
+                Genre = bookToAdd.Genre ?? "Unknown"
+            };
+            Context.Books.Add(book);
+            await Context.SaveChangesAsync();
             //  Return a 201 (created) status code.
             //  Add a location header to the response that has the URL for the new baby resource.
             //  And, if you are nice, send them a copy of the new resource as well.
 
-
-
-            return BadRequest();
+            var bookToReturn = new GetBookResponseDocument
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                Genre = book.Genre
+            };
+            return CreatedAtRoute("books#getabook", new { id = book.Id }, bookToReturn);
         }
 
         [HttpGet("/books")]
