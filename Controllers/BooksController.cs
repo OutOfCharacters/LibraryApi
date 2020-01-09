@@ -22,6 +22,7 @@ namespace LibraryApi.Controllers
         {
             //Single or default returns either one value, or default(null) or throws an exception if multiple objects are to be returned 
             var result = await Context.Books
+                .Where(b=>b.InInventory == true)
                 .Select(b => new GetBookResponseDocument
                 {
                     Id = b.Id,
@@ -43,10 +44,11 @@ namespace LibraryApi.Controllers
         [HttpPost("/books")]
         public async Task<IActionResult> AddABook([FromBody] PostBookRequest bookToAdd)
         {
-            // Validate the thingy
-            // Not? -> Return a 400 status (Bad Request)
-            // Is Valid?
-            //  Add it to the database
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var book = new Book
             {
                 Title = bookToAdd.Title,
@@ -55,9 +57,6 @@ namespace LibraryApi.Controllers
             };
             Context.Books.Add(book);
             await Context.SaveChangesAsync();
-            //  Return a 201 (created) status code.
-            //  Add a location header to the response that has the URL for the new baby resource.
-            //  And, if you are nice, send them a copy of the new resource as well.
 
             var bookToReturn = new GetBookResponseDocument
             {
@@ -69,11 +68,43 @@ namespace LibraryApi.Controllers
             return CreatedAtRoute("books#getabook", new { id = book.Id }, bookToReturn);
         }
 
+        //Delete almost never gets used, usually just enables/disables certain rows with property
+        [HttpDelete("/books/{id:int}")]
+        public async Task<IActionResult> RemoveABook(int id)
+        {
+            var book = await Context.Books.Where(b => b.Id == id && b.InInventory).SingleOrDefaultAsync();
+            if (book != null)
+            {
+                book.InInventory = false;
+                await Context.SaveChangesAsync();
+            }
+            //It doesn't make sense to return a 404 from a delete... it's already gone!!
+            return NoContent();
+        }
+
+        [HttpPut("/books/{id:int}/genre")]
+        public async Task<IActionResult> UpdateGenre(int id,[FromBody] string newGenre)
+        {
+            var book = await Context.Books.Where(b => b.Id == id && b.InInventory).SingleOrDefaultAsync();
+            if (book == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                book.Genre = newGenre;
+                await Context.SaveChangesAsync();
+                return NoContent();
+            }
+        }
+
         [HttpGet("/books")]
         public async Task<IActionResult> GetAllBooks([FromQuery] string genre = "all")
         {
             var response = new GetBooksResponseCollection();
-            var allBooks = Context.Books.Select(b => new BookSummaryItem
+            var allBooks = Context.Books
+                .Where(b=>b.InInventory == true)
+                .Select(b => new BookSummaryItem
             {
                 Id = b.Id,
                 Title = b.Title,
